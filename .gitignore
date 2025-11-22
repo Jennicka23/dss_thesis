@@ -8,3 +8,5 @@
 *.json
 *.gz
 *.zip
+*.txt
+.ipynb_checkpoints
