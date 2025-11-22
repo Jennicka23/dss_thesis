@@ -10,4 +10,5 @@
 *.zip
 *.txt
 *.xlsx
+*.png
 .ipynb_checkpoints
