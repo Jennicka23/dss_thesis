@@ -5,7 +5,9 @@ gc()
 cat("\014")
 if (!require("pacman")) install.packages("pacman")
 library(pacman)
-pacman::p_load(dplyr, tidyr, purrr, tibble, readr, stringr, here, jsonlite, ggplot2, widyr, scales)
+pacman::p_load(dplyr, tidyr, purrr, tibble, readr, stringr, here, jsonlite, ggplot2, widyr, scales, patchwork)
+
+if(!dir.exists("plots")) dir.create("plots")
 
 # ---------------------------- 2. Input ---------------------------------------#
 
@@ -19,32 +21,44 @@ glimpse(data_def)
 summary(data_def)
 
 # Nutri-Score distributions
-ggplot(data_def, aes(x = nutriscore, fill = nutriscore)) +
+nutri <- ggplot(data_def, aes(x = nutriscore, fill = nutriscore)) +
   geom_bar() +
-  geom_text(stat = "count", aes(label = scales::comma(..count..)), vjust = -0.3) +
+  geom_text(stat = "count", aes(label = scales::comma(..count..)), vjust = -0.3 , size = 16/3) +
   scale_fill_manual(values = c("a"="#8BC34A","b"="#CDDC39","c"="#FFC107","d"="#FF9800","e"="#F44336")) +
   labs(title="Nutri-Score distribution", x="Nutri-Score", y="Count") +
-  theme_minimal() + theme(legend.position = "none")
+  theme_minimal() + theme(legend.position = "none",
+  plot.title = element_text(size = 28), 
+  axis.title = element_text(size = 16),
+  axis.text  = element_text(size = 16))
 
 # Nova group distribution
-ggplot(data_def, aes(x = factor(nova_group), fill = factor(nova_group))) +
+nova <- ggplot(data_def, aes(x = factor(nova_group), fill = factor(nova_group))) +
   geom_bar() +
-  geom_text(stat = "count", aes(label = scales::comma(..count..)), vjust = -0.3) +
+  geom_text(stat = "count", aes(label = scales::comma(..count..)), vjust = -0.3, size = 16/3) +
   scale_fill_manual(values = c("1"="#4CAF50","2"="#8BC34A","3"="#FFC107","4"="#E57373")) +
   labs(title = "NOVA group distribution", x = "NOVA group", y = "Count") +
-  theme_minimal() + theme(legend.position = "none")
+  theme_minimal() + theme(legend.position = "none",
+  plot.title = element_text(size = 28), 
+  axis.title = element_text(size = 16),
+  axis.text  = element_text(size = 16))
 
+nutri_nova <- nutri+nova
 
 # Histogram of number of labels
-ggplot(data_def %>% filter(n_labels_total <= 25), aes(x = n_labels_total)) +
+labels <- ggplot(data_def %>% filter(n_labels_total <= 25), aes(x = n_labels_total)) +
   geom_bar(fill = "steelblue") +
   scale_y_continuous(labels = scales::comma) +
-  labs(title = "Number of labels per product (0–25)",
+  labs(title = "Number of labels per product",
        x = "Number of labels", y = "Number of products") +
-  theme_minimal()
+  theme_minimal() + 
+  theme(
+    plot.title = element_text(size = 28),
+    axis.title = element_text(size = 16),
+    axis.text  = element_text(size = 16)
+  )
 
 # Nutri-score distribution within NOVA groups
-data_def %>%
+dist_nutri_nova <- data_def %>%
   count(nova_group, nutriscore) %>%
   group_by(nova_group) %>%
   mutate(prop = n / sum(n)) %>%
@@ -52,12 +66,19 @@ data_def %>%
   geom_col(position = position_fill(reverse = TRUE)) +
   geom_text(aes(label = scales::percent(prop, accuracy = 1)),
             position = position_fill(vjust = 0.5, reverse = TRUE),
-            color = "white", size = 3) +
+            color = "white", size = 16/3) +
   scale_fill_manual(values = c("a"="#8BC34A","b"="#CDDC39","c"="#FFC107","d"="#FF9800","e"="#F44336")) +
   labs(title = "Nutri-Score distribution within NOVA groups",
        y = "NOVA group", x = "Share within NOVA group",
        fill = "Nutri-Score") +
-  scale_x_continuous(labels = scales::percent) + theme_minimal()
+  scale_x_continuous(labels = scales::percent) + theme_minimal() +
+  theme(
+    plot.title = element_text(size = 28),
+    axis.title = element_text(size = 16),
+    axis.text  = element_text(size = 16),
+    legend.title = element_text(size = 16),
+    legend.text  = element_text(size = 16)
+  )
 
 # Map to broader categories
 category_lookup <- tribble(
@@ -157,14 +178,14 @@ combined_main_long <- categories_main_stats %>%
   )
 
 # Nutri-score distribution within NOVA groups per category
-ggplot(combined_main_long %>% group_by(main_mapped_category,type) %>%
+categories <- ggplot(combined_main_long %>% group_by(main_mapped_category,type) %>%
          mutate(prop=count/sum(count),
                 label_text=ifelse(prop>0.05,paste0(label," (",scales::percent(prop,accuracy=1),")"),"")),
        aes(x=factor(main_mapped_category,levels=sort(unique(main_mapped_category),decreasing=TRUE)),
            y=prop,fill=label))+
   geom_col(position=position_fill(reverse=TRUE))+
   geom_text(aes(label=label_text),
-            position=position_fill(vjust=0.5,reverse=TRUE),color="white",size=3)+
+            position=position_fill(vjust=0.5,reverse=TRUE),color="white",size=16/3)+
   facet_wrap(~type,ncol=1,scales="free_y")+
   scale_y_continuous(labels=scales::percent)+
   scale_fill_manual(values=c("1"="#4CAF50","2"="#8BC34A","3"="#FFC107","4"="#E57373",
@@ -172,4 +193,19 @@ ggplot(combined_main_long %>% group_by(main_mapped_category,type) %>%
                     breaks=c("1","2","3","4","A","B","C","D","E"),name="Label")+
   labs(title="Category balance (main level): Nutri-Score and NOVA Group distributions",
        x="Main Category",y="Share within Category")+
-  coord_flip()+theme_minimal(base_size=13)
+  coord_flip()+theme_minimal() +
+  theme(
+    plot.title  = element_text(size = 28, hjust=0.5),
+    axis.title  = element_text(size = 16),
+    axis.text   = element_text(size = 16),
+    strip.text  = element_text(size = 20, face = "bold"), 
+    legend.title = element_text(size = 16),
+    legend.text  = element_text(size = 16)
+  )
+
+# --------------------------- 4. Output  --------------------------------#
+
+ggsave("plots/nutriscore_nova.png", plot = nutri_nova, width = 14, height = 7, dpi = 300)
+ggsave("plots/labels.png", plot = labels, width = 14, height = 7, dpi = 300, bg = "white")
+ggsave("plots/dist_nutri_nova.png", plot = dist_nutri_nova, width = 14, height = 7, dpi = 300, bg = "white")
+ggsave("plots/categories.png", plot = categories, width = 16, height = 10, dpi = 300, bg = "white")
