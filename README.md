@@ -7,7 +7,7 @@ This repository contains the code for my MSc thesis, "Beyond the Label: Predicti
 
 ## Repository Overview
 
-.
+```
 ├── data/                 # Local data storage (raw files, not all tracked in git)
 ├── gen/                  # Generated files (figures, tables, data files)
 ├── results/              # Final model outputs, metrics, and analysis results
@@ -15,6 +15,8 @@ This repository contains the code for my MSc thesis, "Beyond the Label: Predicti
 ├── src-preparation/      # Data retrieval, cleaning, mapping, and final dataset creation
 ├── .gitignore
 └── README.md
+
+```
 
 ### `src-preparation/`
 
