@@ -40,5 +40,28 @@ Numbering reflects the modeling pipeline:
 - `3.0–3.2_*eval_*`.ipynb – Evaluate baseline and tree-based models (accuracy, balanced accuracy, F1-macro, etc.).
 - `4.0–4.2_*perception_*`.ipynb – Error and mismatch analysis used to study perception biases.
 
+## Running Instructions
+
+1. **Fork and clone the repository**  
+   - Fork this repo to your own GitHub account.  
+   - Clone it locally, e.g. `git clone https://github.com/Jennicka23/dss_thesis`.
+
+2. **Download and store the data**  
+   - Download the full Open Food Facts from:  
+     https://static.openfoodfacts.org/data/openfoodfacts-products.jsonl.gz  
+   - Store the file somewhere on your computer.
+   - Open `/src-preparation/1_retrieve_dataset.ipynb` and update the `FILE_PATH` variable to point to this location.
+
+3. **Run the data preparation pipeline**  
+   - Execute all scripts in `src-preparation/` in numerical order (`1_...` > `6_...`).  
+   - This will create the cleaned dataset used for modelling.
+
+4. **Run the modelling pipeline**  
+   - Execute all notebooks in `src-modelling/` in numerical order.  
+   - This trains the baseline and tree-based models, evaluates them, and runs the perception/error analyses.
+
+5. **Inspect results**  
+   - All final outputs (metrics, tables, and figures) are written to the `results/` directory.
+
 ## About
 ***by Jennicka Wijma, Tilburg, 2025***
